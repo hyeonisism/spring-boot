@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import kotlin.reflect.jvm.internal.impl.load.kotlin.KotlinClassFinder;
 import org.springframework.beans.PropertyEditorRegistry;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.context.properties.bind.Bindable.BindRestriction;
@@ -37,6 +38,7 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyS
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
 import org.springframework.boot.context.properties.source.ConfigurationPropertyState;
 import org.springframework.boot.convert.ApplicationConversionService;
+import org.springframework.core.KotlinDetector;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.ConverterNotFoundException;
 import org.springframework.core.env.Environment;
@@ -49,6 +51,7 @@ import org.springframework.util.Assert;
  *
  * @author Phillip Webb
  * @author Madhura Bhave
+ * @author Hyunjin Choi
  * @since 2.0.0
  */
 public class Binder {
@@ -393,6 +396,11 @@ public class Binder {
 
 	private AggregateBinder<?> getAggregateBinder(Bindable<?> target, Context context) {
 		Class<?> resolvedType = target.getType().resolve(Object.class);
+
+		if (KotlinDetector.isKotlinPresent() && KotlinDetector.isKotlinType(resolvedType)) {
+			return null;
+		}
+
 		if (Map.class.isAssignableFrom(resolvedType)) {
 			return new MapBinder(context);
 		}
